@@ -4,6 +4,7 @@ from torch.nn import functional as F
 from .conv_lstm_cell import ConvLSTMCell
 from torch.autograd import Variable
 
+
 class PredNet(nn.Module):
 	def __init__(self, input_size, R_channels, A_channels, p_max=1.0, output_mode='error',
 				gating_mode='mul', extrap_start_time=None, peephole=True, lstm_tied_bias=True):
