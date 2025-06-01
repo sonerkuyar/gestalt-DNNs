@@ -5,7 +5,7 @@ from src.utils.create_stimuli.drawing_utils import *
 from itertools import product
 from src.utils.misc import *
 from src.utils.misc import main_text_nets, all_nets, appendix_nets
-
+import gc
 
 def run_cossim(network_name, pretraining, type_ds, background, distance_type, transf_code, type_ds_args=None):
     img_size = np.array((224, 224), dtype=int)
@@ -33,6 +33,12 @@ def run_cossim(network_name, pretraining, type_ds, background, distance_type, tr
         config.pretraining = './models/prednet-L_0-mul-peepFalse-tbiasFalse-best.pt'
 
     generate_dataset_rnd(config, out_path=exp_folder)  # if not os.path.exists(exp_folder + '_cossim.df') else None
+    config = None
+    del config
+    del a
+    gc.collect()  
+    plt.close(a)            # <-- close this figure explicitly
+    plt.close('all') 
 
 
 pretraining = ['ImageNet']
