@@ -124,6 +124,12 @@ class GrabNet():
             net = torchvision.models.vit_h_14(pretrained=imagenet_pt, progress=True, **kwargs)
         elif 'dino' in network_name:  # can be dino_vits16, dino_vits8, dino_vitb16, dino_vitb8
             net = torch.hub.load('facebookresearch/dino:main', network_name)
+
+        elif network_name == 'efficientnet_b0':
+            net = torchvision.models.efficientnet_b0(pretrained=imagenet_pt, progress=True, **kwargs)
+            if num_classes is not None:
+                net.classifier[1] = nn.Linear(net.classifier[1].in_features, num_classes)
+        
         elif network_name == 'simCLR_resnet18_stl10':
             net = torchvision.models.resnet18(pretrained=False, num_classes=10)
             if imagenet_pt:
