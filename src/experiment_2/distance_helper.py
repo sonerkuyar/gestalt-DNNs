@@ -165,4 +165,4 @@ def generate_dataset_rnd(config, out_path):
 
     print(fg.red + f'Saved in {out_path}' + rs.fg)
     pickle.dump(distance, open(out_path + f'_{config.distance_type}.df', 'wb'))
-
+    del config.model
