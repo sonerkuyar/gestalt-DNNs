@@ -6,10 +6,11 @@ import gc
 import matplotlib.pyplot as plt
 import numpy as np
 
-from ..utils.Config import Config
-from ..experiment_2.distance_helper import generate_dataset_rnd
-from ..utils.create_stimuli.drawing_utils import DrawShape
-from ..utils.misc import config_to_path_special
+from src.utils.Config import Config
+from src.experiment_2.distance_helper import generate_dataset_rnd
+from src.utils.create_stimuli.drawing_utils import DrawShape
+from src.utils.misc import config_to_path_special
+
 
 def main():
     parser = argparse.ArgumentParser()
