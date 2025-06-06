@@ -4,7 +4,8 @@ import torch
 import torchvision
 import torch.nn as nn
 from sty import fg, ef, rs, bg
-import os
+import os 
+
 
 def get_layer_from_depth_str(all_layers, depth_layer):
     if depth_layer == 'early':
@@ -154,6 +155,42 @@ class GrabNet():
                 # SqueezeNet’s “classifier” is a Conv2d that maps 512→1000 by default
                 # We override that conv to map 512→num_classes
                 net.classifier[1] = nn.Conv2d(512, num_classes, kernel_size=(1, 1))
+
+        elif network_name == 'swin_tiny_patch4_window7_224':
+            import timm
+            net = timm.create_model(
+                'swin_tiny_patch4_window7_224',
+                pretrained=imagenet_pt,
+                num_classes=nc,
+                **kwargs
+            )
+
+        elif network_name == 'deit_small_patch16_224':
+            import timm
+            net = timm.create_model(
+                'deit_small_patch16_224',
+                pretrained=imagenet_pt,
+                num_classes=nc,
+                **kwargs
+            )
+
+        elif network_name == 'coatnet_0_rw_224':
+            import timm
+            net = timm.create_model(
+                'coatnet_0_rw_224',
+                pretrained=imagenet_pt,
+                num_classes=nc,
+                **kwargs
+            )
+
+        elif network_name == 'maxvit_tiny_patch4_window7_224':
+            import timm
+            net = timm.create_model(
+                'maxvit_tiny_patch4_window7_224',
+                pretrained=imagenet_pt,
+                num_classes=nc,
+                **kwargs
+            )
 
         elif network_name == 'simCLR_resnet18_stl10':
             net = torchvision.models.resnet18(pretrained=False, num_classes=10)
