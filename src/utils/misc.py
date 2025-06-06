@@ -305,6 +305,39 @@ class MyGrabNet(GrabNet):
         elif network_name == 'clip':
             import clip
             net, _ = clip.load("ViT-B/32", device='cpu')
+
+        elif network_name == 'swin_tiny_patch4_window7_224':
+            import timm
+            # By default Swin-Tiny expects 224×224 input; no resize override needed
+            net = timm.create_model(
+                'swin_tiny_patch4_window7_224',
+                pretrained=imagenet_pt,
+                num_classes=kwargs.get('num_classes', None)
+            )
+
+        elif network_name == 'deit_small_patch16_224':
+            import timm
+            net = timm.create_model(
+                'deit_small_patch16_224',
+                pretrained=imagenet_pt,
+                num_classes=kwargs.get('num_classes', None)
+            )
+
+        elif network_name == 'coatnet_0_rw_224':
+            import timm
+            net = timm.create_model(
+                'coatnet_0_rw_224',
+                pretrained=imagenet_pt,
+                num_classes=kwargs.get('num_classes', None)
+            )
+
+        elif network_name == 'maxvit_tiny_patch4_window7_224':
+            import timm
+            net = timm.create_model(
+                'maxvit_tiny_patch4_window7_224',
+                pretrained=imagenet_pt,
+                num_classes=kwargs.get('num_classes', None)
+            )
         if 'vonenet' in network_name:
             norm_stats = dict(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])
             os.environ['HOME'] = './'

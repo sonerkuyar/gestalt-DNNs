@@ -157,43 +157,7 @@ class GrabNet():
                 # We override that conv to map 512→num_classes
                 net.classifier[1] = nn.Conv2d(512, num_classes, kernel_size=(1, 1))
 
-        elif network_name == 'swin_tiny_patch4_window7_224':
-            import timm
-            net = timm.create_model(
-                'swin_tiny_patch4_window7_224',
-                pretrained=imagenet_pt,
-                num_classes=nc,
-                **kwargs
-            )
-
-        elif network_name == 'deit_small_patch16_224':
-            import timm
-            net = timm.create_model(
-                'deit_small_patch16_224',
-                pretrained=imagenet_pt,
-                num_classes=nc,
-                **kwargs
-            )
-
-        elif network_name == 'coatnet_0_rw_224':
-            print("coatnet_0_rw_224 branch is selected")
-            import timm
-            net = timm.create_model(
-                'coatnet_0_rw_224',
-                pretrained=imagenet_pt,
-                num_classes=nc,
-                **kwargs
-            )
-
-        elif network_name == 'maxvit_tiny_patch4_window7_224':
-            import timm
-            net = timm.create_model(
-                'maxvit_tiny_patch4_window7_224',
-                pretrained=imagenet_pt,
-                num_classes=nc,
-                **kwargs
-            )
-
+ 
         elif network_name == 'simCLR_resnet18_stl10':
             net = torchvision.models.resnet18(pretrained=False, num_classes=10)
             if imagenet_pt:
