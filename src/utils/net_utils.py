@@ -124,11 +124,37 @@ class GrabNet():
             net = torchvision.models.vit_h_14(pretrained=imagenet_pt, progress=True, **kwargs)
         elif 'dino' in network_name:  # can be dino_vits16, dino_vits8, dino_vitb16, dino_vitb8
             net = torch.hub.load('facebookresearch/dino:main', network_name)
+        
         elif network_name == 'efficientnet_b0':
             net = torchvision.models.efficientnet_b0(pretrained=imagenet_pt, progress=True, **kwargs)
             if num_classes is not None:
                 net.classifier[1] = nn.Linear(net.classifier[1].in_features, num_classes)
-        
+        elif network_name == 'convnext_base':
+            net = torchvision.models.convnext_base(pretrained=imagenet_pt, progress=True, **kwargs)
+            if num_classes is not None:
+                # ConvNeXt’s classifier is nn.Sequential( LayerNorm, Linear )
+                # The last Linear sits at index -1 of net.classifier
+                net.classifier[-1] = nn.Linear(net.classifier[-1].in_features, num_classes)
+
+        elif network_name == 'regnet_y_16gf':
+            net = torchvision.models.regnet_y_16gf(pretrained=imagenet_pt, progress=True, **kwargs)
+            if num_classes is not None:
+                # RegNet uses net.fc as its final Linear
+                net.fc = nn.Linear(net.fc.in_features, num_classes)
+
+        elif network_name == 'mobilenet_v3_large':
+            net = torchvision.models.mobilenet_v3_large(pretrained=imagenet_pt, progress=True, **kwargs)
+            if num_classes is not None:
+                # MobileNetV3’s final classifier is net.classifier[-1]
+                net.classifier[-1] = nn.Linear(net.classifier[-1].in_features, num_classes)
+
+        elif network_name == 'squeezenet1_1':
+            net = torchvision.models.squeezenet1_1(pretrained=imagenet_pt, progress=True, **kwargs)
+            if num_classes is not None:
+                # SqueezeNet’s “classifier” is a Conv2d that maps 512→1000 by default
+                # We override that conv to map 512→num_classes
+                net.classifier[1] = nn.Conv2d(512, num_classes, kernel_size=(1, 1))
+
         elif network_name == 'simCLR_resnet18_stl10':
             net = torchvision.models.resnet18(pretrained=False, num_classes=10)
             if imagenet_pt:
