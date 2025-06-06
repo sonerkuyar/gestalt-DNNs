@@ -60,6 +60,7 @@ class GrabNet():
         resize = None
         nc = 1000 if imagenet_pt else num_classes
         kwargs = dict(num_classes=nc) if nc is not None else dict()
+        print(fg.red + "Network name is: ", network_name + rs.fg)
         if network_name == 'vgg11':
             net = torchvision.models.vgg11(pretrained=imagenet_pt, progress=True, **kwargs)
             if num_classes is not None:
@@ -175,6 +176,7 @@ class GrabNet():
             )
 
         elif network_name == 'coatnet_0_rw_224':
+            print("coatnet_0_rw_224 branch is selected")
             import timm
             net = timm.create_model(
                 'coatnet_0_rw_224',
@@ -224,6 +226,7 @@ class GrabNet():
                 assert log.missing_keys == ['fc.weight', 'fc.bias']
 
         else:
+            print("else branch is selected")
             net, norm_stats, resize = cls.get_other_nets(network_name, imagenet_pt, **kwargs)
             assert False if net is False else True, f"Network name {network_name} not recognized"
 
