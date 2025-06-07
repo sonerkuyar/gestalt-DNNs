@@ -132,14 +132,15 @@ class ComputeDistance(RecordActivations):
         return distance_all
 
 
-def generate_dataset_rnd(config, out_path):
+def generate_dataset_rnd(config, out_path=None, return_data=False):
     """
-    Dealing with random pixel is annoying because when applying the affine transformation we have trouble with the fill. We assume that, if we want a rndpixel background, the image is creates white-on-black. We then apply the rotation/scale etc. and only after that we make the background random pixel.
+    Generate random dataset with transformations and optionally save or return it.
     """
-    config.model, norm_stats, resize = MyGrabNet().get_net(config.network_name,
-                                     imagenet_pt=True if config.pretraining == 'ImageNet' else False)
+    config.model, norm_stats, resize = MyGrabNet().get_net(
+        config.network_name,
+        imagenet_pt=True if config.pretraining == 'ImageNet' else False
+    )
     prepare_network(config.model, config, train=False)
-
 
     transf_list = [torchvision.transforms.ToTensor(), torchvision.transforms.Normalize(norm_stats['mean'], norm_stats['std'])]
 
@@ -150,19 +151,27 @@ def generate_dataset_rnd(config, out_path):
     if config.background == 'random':
         transform.transforms.insert(0, RandomPixels())
 
-    if config.background == 'black' or config.background == 'random':
-        fill_bk = 0
-    elif config.background == 'white':
-        fill_bk = 1
-    else:
-        fill_bk = config.background
-    pathlib.Path(os.path.dirname(out_path)).mkdir(parents=True, exist_ok=True)
+    fill_bk = 0 if config.background in ['black', 'random'] else (1 if config.background == 'white' else config.background)
+    pathlib.Path(os.path.dirname(out_path)).mkdir(parents=True, exist_ok=True) if out_path else None
 
     recorder = ComputeDistance(net=config.model, use_cuda=False, only_save=['Conv2d', 'Linear'])
 
-    distance = recorder.compute_random_set(transform=transform, fill_bk=fill_bk, var_tr=config.transf_code, N=config.rep, type_ds=config.type_ds, path_save_fig=out_path + '.png', stats=norm_stats, draw_obj=config.draw_obj, type_ds_args=config.type_ds_args, distance_type=config.distance_type)
+    distance = recorder.compute_random_set(
+        transform=transform,
+        fill_bk=fill_bk,
+        var_tr=config.transf_code,
+        N=config.rep,
+        type_ds=config.type_ds,
+        path_save_fig=out_path + '.png' if out_path else None,
+        stats=norm_stats,
+        draw_obj=config.draw_obj,
+        type_ds_args=config.type_ds_args,
+        distance_type=config.distance_type
+    )
 
+    if return_data:
+        return distance
 
-    print(fg.red + f'Saved in {out_path}' + rs.fg)
+    print(fg.red + f'Saved in {out_path}" + rs.fg')
     pickle.dump(distance, open(out_path + f'_{config.distance_type}.df', 'wb'))
     del config.model
