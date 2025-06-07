@@ -81,9 +81,11 @@ def main():
 
     # Save results
     exp_folder = f'./results/{config_to_path_special(config)}'
-    os.makedirs(os.path.dirname(exp_folder), exist_ok=True)
-    pickle.dump(distance, open(exp_folder + f'_{config.distance_type}.df', 'wb'))
-    print(f'Saved in {exp_folder}_{config.distance_type}.df')
+    os.makedirs(exp_folder, exist_ok=True)
+    result_path = os.path.join(exp_folder, f'_{config.distance_type}.df')
+    with open(result_path, 'wb') as f:
+        pickle.dump(distance, f)
+    print(f'Saved in {result_path}')
 
     del config
     plt.close('all')

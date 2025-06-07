@@ -60,7 +60,8 @@ class ComputeDistance(RecordActivations):
 
         images = [[transform(i[0]), transform(i[1])] for i in images]
         image_plt = [[conver_tensor_to_plot(i, stats['mean'], stats['std']) for i in j] for j in images]
-        save_fig_pair(path_save_fig, image_plt, n=np.min([len(images), 4]))
+        if path_save_fig is not None:
+            save_fig_pair(path_save_fig, image_plt, n=np.min([len(images), 4]))
 
         for (image0, image1) in tqdm(images):
             if self.net._get_name() == 'PredNet':
