@@ -132,15 +132,14 @@ class ComputeDistance(RecordActivations):
         return distance_all
 
 
-def generate_dataset_rnd(config, out_path=None, return_data=False):
+def generate_dataset_rnd(config, out_path):
     """
-    Generate random dataset with transformations and optionally save or return it.
+    Dealing with random pixel is annoying because when applying the affine transformation we have trouble with the fill. We assume that, if we want a rndpixel background, the image is creates white-on-black. We then apply the rotation/scale etc. and only after that we make the background random pixel.
     """
-    config.model, norm_stats, resize = MyGrabNet().get_net(
-        config.network_name,
-        imagenet_pt=True if config.pretraining == 'ImageNet' else False
-    )
+    config.model, norm_stats, resize = MyGrabNet().get_net(config.network_name,
+                                     imagenet_pt=True if config.pretraining == 'ImageNet' else False)
     prepare_network(config.model, config, train=False)
+
 
     transf_list = [torchvision.transforms.ToTensor(), torchvision.transforms.Normalize(norm_stats['mean'], norm_stats['std'])]
 
@@ -151,27 +150,52 @@ def generate_dataset_rnd(config, out_path=None, return_data=False):
     if config.background == 'random':
         transform.transforms.insert(0, RandomPixels())
 
-    fill_bk = 0 if config.background in ['black', 'random'] else (1 if config.background == 'white' else config.background)
-    pathlib.Path(os.path.dirname(out_path)).mkdir(parents=True, exist_ok=True) if out_path else None
+    if config.background == 'black' or config.background == 'random':
+        fill_bk = 0
+    elif config.background == 'white':
+        fill_bk = 1
+    else:
+        fill_bk = config.background
+    pathlib.Path(os.path.dirname(out_path)).mkdir(parents=True, exist_ok=True)
 
     recorder = ComputeDistance(net=config.model, use_cuda=False, only_save=['Conv2d', 'Linear'])
 
-    distance = recorder.compute_random_set(
-        transform=transform,
-        fill_bk=fill_bk,
-        var_tr=config.transf_code,
-        N=config.rep,
-        type_ds=config.type_ds,
-        path_save_fig=out_path + '.png' if out_path else None,
-        stats=norm_stats,
-        draw_obj=config.draw_obj,
-        type_ds_args=config.type_ds_args,
-        distance_type=config.distance_type
-    )
+    distance = recorder.compute_random_set(transform=transform, fill_bk=fill_bk, var_tr=config.transf_code, N=config.rep, type_ds=config.type_ds, path_save_fig=out_path + '.png', stats=norm_stats, draw_obj=config.draw_obj, type_ds_args=config.type_ds_args, distance_type=config.distance_type)
 
-    if return_data:
-        return distance
 
-    print(fg.red + f'Saved in {out_path}" + rs.fg')
+    print(fg.red + f'Saved in {out_path}' + rs.fg)
     pickle.dump(distance, open(out_path + f'_{config.distance_type}.df', 'wb'))
     del config.model
+
+
+def generate_stimuli_pairs(draw_obj, type_ds, N=5, var_tr='', type_ds_args=None):
+    """
+    Generate and return a list of (image_A, image_B, affine_params) tuples.
+    No model or DNN evaluation is performed.
+    """
+    img_size = np.array((224, 224), dtype=int)
+
+    def get_new_affine_values():
+        tr = [np.random.uniform(-0.2, 0.2) * img_size[0], np.random.uniform(-0.2, 0.2) * img_size[1]] if 't' in var_tr else (0, 0)
+        scale = np.random.uniform(0.7, 1.3) if 's' in var_tr else 1.0
+        rot = np.random.uniform(0, 360) if 'r' in var_tr else 0
+        return (rot, tr, scale, 0.0)
+
+    im_set = []
+    N = 1 if var_tr == 'none' else N
+    if isinstance(type_ds, str):
+        tt = "".join(['_' if i == '-' else i for i in type_ds])
+        for i in range(N):
+            if type_ds_args is None:
+                im_pair = getattr(draw_obj, f'get_{tt}')()
+            else:
+                im_pair = getattr(draw_obj, f'get_{tt}')(type_ds_args)
+            affine_params = get_new_affine_values()
+            im_set.append((im_pair[0], im_pair[1], affine_params))
+    else:  # assume type_ds is a function
+        for i in range(N):
+            im_pair = type_ds[1](**type_ds_args)
+            affine_params = get_new_affine_values()
+            im_set.append((im_pair[0], im_pair[1], affine_params))
+
+    return im_set
