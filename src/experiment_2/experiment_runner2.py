@@ -65,7 +65,7 @@ def main():
         transf_list.insert(0, transforms.Resize(resize))
     transform = torchvision.transforms.Compose(transf_list)
     if config.background == 'random':
-        from src.utils.create_stimuli.drawing_utils import RandomPixels
+        from src.experiment_2.distance_helper import RandomPixels
         transform.transforms.insert(0, RandomPixels())
 
     fill_bk = 0 if config.background in ['black', 'random'] else (1 if config.background == 'white' else config.background)
