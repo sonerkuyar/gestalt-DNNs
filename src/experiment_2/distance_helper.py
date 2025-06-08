@@ -63,35 +63,42 @@ class ComputeDistance(RecordActivations):
         if path_save_fig is not None:
             save_fig_pair(path_save_fig, image_plt, n=np.min([len(images), 4]))
 
-        # Batch all images into two tensors
+        # Batch size for chunked GPU processing
+        batch_size = 32
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        im0_batch = torch.stack([pair[0] for pair in images], dim=0).to(device)
-        im1_batch = torch.stack([pair[1] for pair in images], dim=0).to(device)
+        im0_full = torch.stack([pair[0] for pair in images], dim=0)
+        im1_full = torch.stack([pair[1] for pair in images], dim=0)
+        N = im0_full.size(0)
 
-        # Forward pass for all first images
-        _ = self.net(im0_batch)
-        first_acts = {
-            name: feat.detach().view(feat.size(0), -1)
-            for name, feat in self.activation.items()
-            if any(k in name for k in self.only_save)
-        }
+        for start in range(0, N, batch_size):
+            end = min(start + batch_size, N)
+            im0_chunk = im0_full[start:end].to(device)
+            im1_chunk = im1_full[start:end].to(device)
 
-        # Forward pass for all second images
-        _ = self.net(im1_batch)
-        second_acts = {
-            name: feat.detach().view(feat.size(0), -1)
-            for name, feat in self.activation.items()
-            if any(k in name for k in self.only_save)
-        }
+            # Forward chunk0
+            _ = self.net(im0_chunk)
+            first_chunk_acts = {
+                name: feat.detach().view(feat.size(0), -1)
+                for name, feat in self.activation.items()
+                if any(k in name for k in self.only_save)
+            }
 
-        # Compute distances per layer in a vectorized way
-        for name in first_acts:
-            A, B = first_acts[name], second_acts[name]  # both [N, D]
-            if distance_type == 'cossim':
-                dist_list = torch.nn.functional.cosine_similarity(A, B, dim=1).cpu().tolist()
-            else:  # 'euclidean'
-                dist_list = torch.norm(A - B, dim=1).cpu().tolist()
-            distance[name] = dist_list
+            # Forward chunk1
+            _ = self.net(im1_chunk)
+            second_chunk_acts = {
+                name: feat.detach().view(feat.size(0), -1)
+                for name, feat in self.activation.items()
+                if any(k in name for k in self.only_save)
+            }
+
+            # Accumulate distances per layer
+            for name in first_chunk_acts:
+                A, B = first_chunk_acts[name], second_chunk_acts[name]
+                if distance_type == 'cossim':
+                    dist_vals = torch.nn.functional.cosine_similarity(A, B, dim=1).cpu().tolist()
+                else:
+                    dist_vals = torch.norm(A - B, dim=1).cpu().tolist()
+                distance.setdefault(name, []).extend(dist_vals)
 
         return distance
 
