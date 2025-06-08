@@ -21,6 +21,7 @@ def main():
     parser.add_argument('--transf_code', type=str, required=True)
     parser.add_argument('--type_ds', type=str, required=True)
     parser.add_argument('--type_ds_args', type=str, default=None)
+    parser.add_argument('--batch_size', type=int, default=32, help='Batch size for inference')
     args = parser.parse_args()
 
     # Load stimuli
@@ -76,7 +77,7 @@ def main():
     im_set = [(im0, im1) for (im0, im1, _) in stimuli]
     affine_values = [aff for (_, _, aff) in stimuli]
     distance = recorder.compute_distance_set(
-        im_set, fill_bk, transform, affine_values, None, norm_stats, config.distance_type
+        im_set, fill_bk, transform, affine_values, None, norm_stats, config.distance_type, batch_size=args.batch_size
     )
 
     # Save results

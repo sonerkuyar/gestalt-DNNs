@@ -52,7 +52,7 @@ class ComputeDistance(RecordActivations):
         correct_paths = [correct_paths[i] for i in np.random.choice(range(len(correct_paths)), np.min([N, len(correct_paths)]), replace=False)]
         return correct_paths
 
-    def compute_distance_set(self, set: List[Tuple[Image.Image, Image.Image]], fill_bk, transform, affine_values, path_save_fig, stats, distance_type):
+    def compute_distance_set(self, set: List[Tuple[Image.Image, Image.Image]], fill_bk, transform, affine_values, path_save_fig, stats, distance_type, batch_size=32):
         distance = {}
 
         images = [[F.affine(i[0], *af, interpolation=InterpolationMode.NEAREST, fill=fill_bk),
@@ -64,7 +64,6 @@ class ComputeDistance(RecordActivations):
             save_fig_pair(path_save_fig, image_plt, n=np.min([len(images), 4]))
 
         # Batch size for chunked GPU processing
-        batch_size = 32
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         im0_full = torch.stack([pair[0] for pair in images], dim=0)
         im1_full = torch.stack([pair[1] for pair in images], dim=0)
