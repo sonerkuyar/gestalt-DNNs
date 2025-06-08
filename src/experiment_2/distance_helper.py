@@ -63,39 +63,35 @@ class ComputeDistance(RecordActivations):
         if path_save_fig is not None:
             save_fig_pair(path_save_fig, image_plt, n=np.min([len(images), 4]))
 
-        for (image0, image1) in tqdm(images):
-            if self.net._get_name() == 'PredNet':
-                image0 = torch.cat([image0.unsqueeze(0)] * 2, 0).unsqueeze(0)
-                image1 = torch.cat([image1.unsqueeze(0)] * 2, 0).unsqueeze(0)
+        # Batch all images into two tensors
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        im0_batch = torch.stack([pair[0] for pair in images], dim=0).to(device)
+        im1_batch = torch.stack([pair[1] for pair in images], dim=0).to(device)
 
-            else:
-                image0 = image0.unsqueeze(0)  # add batch
-                image1 = image1.unsqueeze(0)
+        # Forward pass for all first images
+        _ = self.net(im0_batch)
+        first_acts = {
+            name: feat.detach().view(feat.size(0), -1)
+            for name, feat in self.activation.items()
+            if any(k in name for k in self.only_save)
+        }
 
-            self.net(make_cuda(image0, torch.cuda.is_available()))
-            first_image_act = {}
-            activation_image1 = deepcopy(self.activation)
-            for name, features1 in self.activation.items():
-                if not np.any([i in name for i in self.only_save]):
-                    continue
-                first_image_act[name] = features1.flatten()
+        # Forward pass for all second images
+        _ = self.net(im1_batch)
+        second_acts = {
+            name: feat.detach().view(feat.size(0), -1)
+            for name, feat in self.activation.items()
+            if any(k in name for k in self.only_save)
+        }
 
-            self.net(make_cuda(image1, torch.cuda.is_available()))
-            activation_image2 = deepcopy(self.activation)
-
-            second_image_act = {}
-            for name, features2 in self.activation.items():
-                if not np.any([i in name for i in self.only_save]):
-                    continue
-                second_image_act[name] = features2.flatten()
-                if name not in distance:
-                    distance[name] = []
-                if distance_type == 'cossim':
-                    distance[name].append(torch.nn.CosineSimilarity(dim=0)(first_image_act[name], second_image_act[name]).item())
-                elif distance_type == 'euclidean':
-                    distance[name].append(torch.norm((first_image_act[name] - second_image_act[name])).item())
-                else:
-                    assert False, f"Distance Type {distance_type} not recognized"
+        # Compute distances per layer in a vectorized way
+        for name in first_acts:
+            A, B = first_acts[name], second_acts[name]  # both [N, D]
+            if distance_type == 'cossim':
+                dist_list = torch.nn.functional.cosine_similarity(A, B, dim=1).cpu().tolist()
+            else:  # 'euclidean'
+                dist_list = torch.norm(A - B, dim=1).cpu().tolist()
+            distance[name] = dist_list
 
         return distance
 
