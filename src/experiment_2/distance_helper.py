@@ -77,7 +77,7 @@ class ComputeDistance(RecordActivations):
             # Forward chunk0
             _ = self.net(im0_chunk)
             first_chunk_acts = {
-                name: feat.detach().view(feat.size(0), -1)
+                name: feat.detach().reshape(feat.size(0), -1)
                 for name, feat in self.activation.items()
                 if any(k in name for k in self.only_save)
             }
@@ -85,7 +85,7 @@ class ComputeDistance(RecordActivations):
             # Forward chunk1
             _ = self.net(im1_chunk)
             second_chunk_acts = {
-                name: feat.detach().view(feat.size(0), -1)
+                name: feat.detach().reshape(feat.size(0), -1)
                 for name, feat in self.activation.items()
                 if any(k in name for k in self.only_save)
             }
