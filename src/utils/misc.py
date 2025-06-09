@@ -99,6 +99,18 @@ all_nets = ['alexnet', 'vgg19bn', 'resnet152', 'inception_v3', 'densenet201', 'c
 
 self_superv_net = ['dino_vitb8', 'dino_vits8', 'simCLR_resnet18_stl10', 'prednet']
 
+# Replication study models
+additional_nets =[
+    'efficientnet_b0',
+    'convnext_base',
+    'regnet_y_16gf',
+    'mobilenet_v3_large',
+    'swin_tiny_patch4_window7_224',
+    'deit_small_patch16_224',
+    'coatnet_0_rw_224',
+    'pit_s_224'
+]
+
 class RandomBackground(torch.nn.Module):
     def __init__(self, color_to_randomize=0):
         super().__init__()
