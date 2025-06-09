@@ -18,6 +18,7 @@ def main():
     parser.add_argument('--args_path', type=str, required=True,
                         help="Path to a pickle file containing a dict with keys "
                              "['network_name','pretraining','background','distance_type']")
+    parser.add_argument('--batch_size', type=int, default=32, help='Batch size for inference')
     args = parser.parse_args()
 
     # load the arguments dict
@@ -59,7 +60,7 @@ def main():
     # compute and save
     exp_folder = f'./results/{config_to_path_hierarchical(config)}'
     out_file = exp_folder + f'{params["distance_type"]}.df'
-    compute_distance_set(config, out_path=out_file)
+    compute_distance_set(config, out_path=out_file, batch_size=args.batch_size)
 
     # cleanup
     del config
