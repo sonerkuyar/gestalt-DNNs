@@ -331,13 +331,14 @@ class MyGrabNet(GrabNet):
                 num_classes=kwargs.get('num_classes', None)
             )
 
-        elif network_name == 'maxvit_tiny_patch4_window7_224':
+        elif network_name == 'pit_s_224':
             import timm
             net = timm.create_model(
-                'maxvit_tiny_patch4_window7_224',
+                'pit_s_224',
                 pretrained=imagenet_pt,
                 num_classes=kwargs.get('num_classes', None)
             )
+                    
         if 'vonenet' in network_name:
             norm_stats = dict(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])
             os.environ['HOME'] = './'
