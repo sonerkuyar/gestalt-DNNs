@@ -64,7 +64,7 @@ def collect(config, type_ds):
 ############ ARGUMENTS #########
 transf_code = 't'
 bk = 'random'
-network_names = brain_score_nn.keys()
+network_names = additional_nets
 normalize = False
 type_ds = list(human_CSE_exp2.keys())[:5]
 distance_type = 'euclidean'
