@@ -53,7 +53,7 @@ def compute_base_comp(type_ds, network_name):
 
 def collect(config, type_ds):
     config.type_ds = type_ds
-    exp_folder = f'./results//{config_to_path_special(config)}'
+    exp_folder = f'/content/drive/MyDrive/cmpe489/results/{config_to_path_special(config)}'
     cs = pickle.load(open(exp_folder + f'_{distance_type}.df', 'rb'))
     cs_layer = cs[type_ds]
     return cs_layer
